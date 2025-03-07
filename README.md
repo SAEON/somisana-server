@@ -1,2 +1,2 @@
 # somisana-server
-API and data access layer for the SOMISANA web system
+Sustainable Ocean Modelling Initiative: a South African approach (SOMISANA) server components
