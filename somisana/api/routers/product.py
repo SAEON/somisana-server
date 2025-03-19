@@ -1,12 +1,12 @@
-import os
-from pathlib import Path
-
-from fastapi import APIRouter, UploadFile, HTTPException
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
 from somisana.api.models import ProductIn, ProductModel, SimulationModel
+from somisana.const import ResourceReferenceType
 from somisana.db import Session
-from somisana.db.models import Product, Simulation
+from somisana.db.models import Product, Simulation, Resource
+from .resource import delete_local_resource_file
 
 router = APIRouter()
 
@@ -36,7 +36,7 @@ def output_product_model(product: Product) -> ProductModel:
     return ProductModel(
         id=product.id,
         title=product.title,
-        abstract=product.abstract,
+        description=product.description,
         doi=product.doi,
         north_bound=product.north_bound,
         south_bound=product.south_bound,
@@ -61,7 +61,7 @@ async def create_product(
 ) -> int:
     product = Product(
         title=product_in.title,
-        abstract=product_in.abstract,
+        description=product_in.description,
         doi=product_in.doi,
         north_bound=product_in.north_bound,
         south_bound=product_in.south_bound,
@@ -78,33 +78,6 @@ async def create_product(
     return product.id
 
 
-@router.post(
-    '/cover_image/{product_id}'
-)
-async def set_product_cover_image(
-        product_id: int,
-        cover_image: UploadFile
-):
-    if not (product := Session.get(Product, product_id)):
-        raise HTTPException(HTTP_404_NOT_FOUND)
-
-    cover_images_dir = f"{Path.home()}/somisana/cover_images"
-
-    if not os.path.exists(cover_images_dir):
-        os.makedirs(cover_images_dir)
-
-    file_path = f"{cover_images_dir}/{cover_image.filename}"
-
-    with open(file_path, "wb") as f:
-        f.write(cover_image.file.read())
-
-    if product.cover_image_path:
-        delete_cover_image_file(product.cover_image_path)
-
-    product.cover_image_path = file_path
-    product.save()
-
-
 @router.put(
     '/{product_id}'
 )
@@ -116,7 +89,7 @@ async def update_product(
         raise HTTPException(HTTP_404_NOT_FOUND)
 
     product.title = product_in.title,
-    product.abstract = product_in.abstract,
+    product.description = product_in.description,
     product.doi = product_in.doi,
     product.north_bound = product_in.north_bound,
     product.south_bound = product_in.south_bound,
@@ -139,11 +112,16 @@ async def delete_product(
     if not (product := Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    delete_cover_image_file(product.cover_image_path)
+    stmt = (
+        select(Resource)
+        .where(Resource.product_id == product_id)
+        .where(Resource.reference_type == ResourceReferenceType.PATH)
+    )
+
+    resources = Session.execute(stmt).scalars().all()
+
+    for resource in resources:
+        delete_local_resource_file(resource.reference)
 
     product.delete()
 
-
-def delete_cover_image_file(cover_image_path):
-    if os.path.exists(cover_image_path):
-        os.remove(cover_image_path)

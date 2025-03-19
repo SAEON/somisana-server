@@ -7,6 +7,7 @@ from somisana.version import VERSION
 
 from somisana.api.routers import product
 from somisana.api.routers import simulation
+from somisana.api.routers import resource
 
 app = FastAPI(
     title="SOMISANA API",
@@ -17,6 +18,7 @@ app = FastAPI(
 )
 
 app.include_router(product.router, prefix='/product', tags=['Product'])
+app.include_router(resource.router, prefix='/resource', tags=['Resource'])
 app.include_router(simulation.router, prefix='/simulation', tags=['Simulation'])
 
 app.add_middleware(

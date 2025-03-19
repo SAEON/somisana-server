@@ -8,7 +8,7 @@ from .simulation import SimulationModel
 class ProductModel(BaseModel):
     id: int
     title: str
-    abstract: str
+    description: str
     doi: Optional[str]
     north_bound: float
     south_bound: float
@@ -19,7 +19,7 @@ class ProductModel(BaseModel):
 
 class ProductIn(BaseModel):
     title: str
-    abstract: str
+    description: str
     doi: Optional[str]
     north_bound: float
     south_bound: float

@@ -14,8 +14,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
-    cover_image_path = Column(String, nullable=True)
-    abstract = Column(String, nullable=False)
+    description = Column(String, nullable=False)
     doi = Column(String)
     north_bound = Column(Numeric, nullable=False)
     south_bound = Column(Numeric, nullable=False)
@@ -25,6 +24,7 @@ class Product(Base):
     product_simulations = relationship('ProductSimulation', cascade='all, delete-orphan', passive_deletes=True)
     simulations = association_proxy('product_simulations', 'simulation',
                                     creator=lambda s: ProductSimulation(simulation=s))
+    resources = relationship('Resource', cascade='all, delete-orphan', passive_deletes=True, back_populates='product')
 
 
 class ProductSimulation(Base):
