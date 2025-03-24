@@ -1,0 +1,10 @@
+services:
+  somisana-db:
+    container_name: TEST-somisana-db
+    image: postgres:16.2
+    ports:
+      - "7357:5432"
+    environment:
+      - POSTGRES_USER=${SOMISANA_DB_USER}
+      - POSTGRES_PASSWORD=${SOMISANA_DB_PASS}
+    restart: always
