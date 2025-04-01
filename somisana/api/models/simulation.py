@@ -10,5 +10,6 @@ class SimulationModel(BaseModel):
 
 
 class SimulationIn(BaseModel):
+    title: str
     folder_path: str
     data_access_url: Optional[str]

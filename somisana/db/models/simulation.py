@@ -13,6 +13,7 @@ class Simulation(Base):
     __tablename__ = 'simulation'
 
     id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
     folder_path = Column(String, nullable=False)
     data_access_url = Column(String, nullable=False)
 

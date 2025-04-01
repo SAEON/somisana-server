@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.get(
-    '/all_simulations'
+    '/all'
 )
 async def list_simulations():
     all_simulations = Session.query(Simulation).all()
@@ -24,6 +24,7 @@ async def create_simulation(
         simulation_in: SimulationIn
 ) -> int:
     simulation = Simulation(
+        title=simulation_in.title,
         folder_path=simulation_in.folder_path,
         data_access_url=simulation_in.data_access_url
     )
