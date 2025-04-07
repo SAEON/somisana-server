@@ -1,3 +1,3 @@
-from .product import ProductIn, ProductModel
-from .simulation import SimulationIn, SimulationModel
+from .product import ProductModel, ProductIn
+from .simulation import SimulationModel
 from .resource import ResourceModel

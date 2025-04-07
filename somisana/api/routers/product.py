@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
-from somisana.api.models import ProductIn, ProductModel, SimulationModel
+from somisana.api.models import ProductModel, ProductIn, SimulationModel
 from somisana.const import ResourceReferenceType
 from somisana.db import Session
 from somisana.db.models import Product, Simulation, Resource
@@ -21,10 +21,11 @@ async def list_products():
 
 
 @router.get(
-    '/{product_id}'
+    '/{product_id}',
+    response_model=ProductModel
 )
 async def get_product(
-        product_id: int
+        product_id: int,
 ) -> ProductModel:
     if not (product := Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
@@ -45,6 +46,7 @@ def output_product_model(product: Product) -> ProductModel:
         simulations=[
             SimulationModel(
                 id=simulation.id,
+                title=simulation.title,
                 folder_path=simulation.folder_path,
                 data_access_url=simulation.data_access_url
             )
@@ -124,4 +126,3 @@ async def delete_product(
         delete_local_resource_file(resource.reference)
 
     product.delete()
-

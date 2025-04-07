@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
 
-from somisana.api.models import SimulationIn
+from somisana.api.models import SimulationModel
 from somisana.db import Session
 from somisana.db.models import Simulation
 
@@ -21,7 +21,7 @@ async def list_simulations():
     '/'
 )
 async def create_simulation(
-        simulation_in: SimulationIn
+        simulation_in: SimulationModel
 ) -> int:
     simulation = Simulation(
         title=simulation_in.title,

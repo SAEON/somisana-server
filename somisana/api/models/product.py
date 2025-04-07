@@ -6,7 +6,7 @@ from .simulation import SimulationModel
 
 
 class ProductModel(BaseModel):
-    id: int
+    id: Optional[int]
     title: str
     description: str
     doi: Optional[str]

@@ -4,12 +4,8 @@ from pydantic import BaseModel
 
 
 class SimulationModel(BaseModel):
-    id: int
-    folder_path: str
-    data_access_url: Optional[str]
-
-
-class SimulationIn(BaseModel):
+    id: Optional[int]
     title: str
     folder_path: str
     data_access_url: Optional[str]
+

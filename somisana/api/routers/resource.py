@@ -17,7 +17,7 @@ router = APIRouter()
     "/{resource_id}",
     response_model=ResourceModel
 )
-async def get_resource_by_id(
+async def get_resource(
         resource_id: int
 ):
     if not (resource := Session.get(Resource, resource_id)):
@@ -28,6 +28,27 @@ async def get_resource_by_id(
         resource_type=resource.resource_type,
         reference_type=resource.reference_type,
     )
+
+
+@router.get(
+    "/product_resources/{product_id}",
+    response_model=list[ResourceModel]
+)
+async def get_product_resources(
+        product_id: int
+):
+    stmt = select(Resource).where(Resource.product_id == product_id)
+    if not (resources := Session.execute(stmt).scalars().all()):
+        raise HTTPException(HTTP_404_NOT_FOUND)
+
+    return [
+        ResourceModel(
+            id=resource.id,
+            reference=resource.reference,
+            resource_type=resource.resource_type,
+            reference_type=resource.reference_type,
+        ) for resource in resources
+    ]
 
 
 @router.get(
@@ -77,20 +98,18 @@ async def add_local_resource(
 
 
 @router.post(
-    '/{resource_type}/{product_id}'
+    '/'
 )
 async def add_resource(
-        resource_type: ResourceType,
-        product_id: int,
-        reference: str
+        resource_in: ResourceModel
 ):
-    if not (Session.get(Product, product_id)):
+    if not (Session.get(Product, resource_in.product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
     resource = Resource(
-        product_id=product_id,
-        resource_type=resource_type,
-        reference=reference,
+        product_id=resource_in.product_id,
+        resource_type=resource_in.resource_type,
+        reference=resource_in.reference,
         reference_type=ResourceReferenceType.LINK
     )
 
