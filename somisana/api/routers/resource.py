@@ -24,7 +24,9 @@ async def get_resource(
         raise HTTPException(HTTP_404_NOT_FOUND)
 
     return ResourceModel(
+        id=resource.id,
         reference=resource.reference,
+        product_id=resource.product_id,
         resource_type=resource.resource_type,
         reference_type=resource.reference_type,
     )
@@ -38,12 +40,12 @@ async def get_product_resources(
         product_id: int
 ):
     stmt = select(Resource).where(Resource.product_id == product_id)
-    if not (resources := Session.execute(stmt).scalars().all()):
-        raise HTTPException(HTTP_404_NOT_FOUND)
+    resources = Session.execute(stmt).scalars().all()
 
     return [
         ResourceModel(
             id=resource.id,
+            product_id=resource.product_id,
             reference=resource.reference,
             resource_type=resource.resource_type,
             reference_type=resource.reference_type,
@@ -115,6 +117,8 @@ async def add_resource(
 
     resource.save()
 
+    return resource.id
+
 
 @router.put(
     '/local/{resource_type}/{resource_id}'
@@ -138,18 +142,17 @@ async def update_local_resource(
 
 
 @router.put(
-    '/{resource_type}/{resource_id}'
+    '/{resource_id}'
 )
 async def update_resource(
-        resource_type: ResourceType,
         resource_id: int,
-        reference: str
+        resource_in: ResourceModel
 ):
     if not (resource := Session.get(Resource, resource_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    resource.resource_type = resource_type
-    resource.reference = reference
+    resource.resource_type = resource_in.resource_type
+    resource.reference = resource_in.reference
     resource.reference_type = ResourceReferenceType.LINK
     resource.save()
 
@@ -181,6 +184,7 @@ def save_local_resource_file(product_id: int, local_file: UploadFile) -> str:
         f.write(local_file.file.read())
 
     return file_path
+
 
 
 def delete_local_resource_file(resource_path):
