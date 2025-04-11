@@ -52,6 +52,7 @@ class SimulationFactory(SOMISANAModelFactory):
         model = Simulation
 
     id = factory.Sequence(lambda n: n)
+    title = factory.Faker('catch_phrase')
     folder_path = factory.Faker('file_path', depth=3)
     data_access_url = factory.Faker('uri')
 
