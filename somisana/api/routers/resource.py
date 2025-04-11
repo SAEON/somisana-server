@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, UploadFile, HTTPException, Form, File
 from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
@@ -77,17 +79,17 @@ async def get_resources_by_resource_type(
 
 
 @router.post(
-    '/local/{resource_type}/{product_id}'
+    '/file'
 )
-async def add_local_resource(
-        resource_type: ResourceType,
-        product_id: int,
-        local_file: UploadFile
+async def add_file_resource(
+        resource_type: Annotated[ResourceType, Form()],
+        product_id: Annotated[int, Form()],
+        file: Annotated[UploadFile, File()]
 ):
     if not (Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    file_path = save_local_resource_file(product_id, local_file)
+    file_path = save_local_resource_file(product_id, file)
 
     resource = Resource(
         product_id=product_id,
@@ -121,17 +123,18 @@ async def add_resource(
 
 
 @router.put(
-    '/local/{resource_type}/{resource_id}'
+    '/file/{resource_id}'
 )
-async def update_local_resource(
-        resource_type: ResourceType,
+async def update_file_resource(
         resource_id: int,
-        local_file: UploadFile
+        resource_type: Annotated[ResourceType, Form()],
+        product_id: Annotated[int, Form()],
+        file: Annotated[UploadFile, File()]
 ):
     if not (resource := Session.get(Resource, resource_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    file_path = save_local_resource_file(resource_id.product_id, local_file)
+    file_path = save_local_resource_file(product_id, file)
 
     delete_local_resource_file(resource.reference)
 
