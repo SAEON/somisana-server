@@ -1,23 +1,25 @@
 import os
 from pathlib import Path
-
 from typing import Annotated
 
-from fastapi import APIRouter, UploadFile, HTTPException, Form, File
+from fastapi import APIRouter, UploadFile, HTTPException, Query, File, Depends
 from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
+from somisana.api.lib.auth import Authorize
+from somisana.api.models import ResourceModel
 from somisana.const import ResourceType, ResourceReferenceType
+from somisana.const import SOMISANAScope
 from somisana.db import Session
 from somisana.db.models import Product, Resource
-from somisana.api.models import ResourceModel
 
 router = APIRouter()
 
 
 @router.get(
     "/{resource_id}",
-    response_model=ResourceModel
+    response_model=ResourceModel,
+    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_READ))]
 )
 async def get_resource(
         resource_id: int
@@ -36,7 +38,8 @@ async def get_resource(
 
 @router.get(
     "/product_resources/{product_id}",
-    response_model=list[ResourceModel]
+    response_model=list[ResourceModel],
+    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_READ))]
 )
 async def get_product_resources(
         product_id: int
@@ -57,7 +60,8 @@ async def get_product_resources(
 
 @router.get(
     "/{product_id}/{resource_type}",
-    response_model=list[ResourceModel]
+    response_model=list[ResourceModel],
+    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_READ))]
 )
 async def get_resources_by_resource_type(
         product_id: int,
@@ -78,22 +82,22 @@ async def get_resources_by_resource_type(
     ]
 
 
-@router.post(
-    '/file'
+@router.put(
+    '/',
+    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_ADMIN))]
 )
 async def add_file_resource(
-        resource_type: Annotated[ResourceType, Form()],
-        product_id: Annotated[int, Form()],
+        resource_query: Annotated[ResourceModel, Query()],
         file: Annotated[UploadFile, File()]
 ):
-    if not (Session.get(Product, product_id)):
+    if not (Session.get(Product, resource_query.product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    file_path = save_local_resource_file(product_id, file)
+    file_path = save_local_resource_file(resource_query.product_id, file)
 
     resource = Resource(
-        product_id=product_id,
-        resource_type=resource_type,
+        product_id=resource_query.product_id,
+        resource_type=resource_query.resource_type,
         reference=file_path,
         reference_type=ResourceReferenceType.PATH
     )
@@ -102,7 +106,8 @@ async def add_file_resource(
 
 
 @router.post(
-    '/'
+    '/',
+    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_ADMIN))]
 )
 async def add_resource(
         resource_in: ResourceModel
@@ -122,46 +127,9 @@ async def add_resource(
     return resource.id
 
 
-@router.put(
-    '/file/{resource_id}'
-)
-async def update_file_resource(
-        resource_id: int,
-        resource_type: Annotated[ResourceType, Form()],
-        product_id: Annotated[int, Form()],
-        file: Annotated[UploadFile, File()]
-):
-    if not (resource := Session.get(Resource, resource_id)):
-        raise HTTPException(HTTP_404_NOT_FOUND)
-
-    file_path = save_local_resource_file(product_id, file)
-
-    delete_local_resource_file(resource.reference)
-
-    resource.resource_type = resource_type
-    resource.reference = file_path
-    resource.reference_type = ResourceReferenceType.PATH
-    resource.save()
-
-
-@router.put(
-    '/{resource_id}'
-)
-async def update_resource(
-        resource_id: int,
-        resource_in: ResourceModel
-):
-    if not (resource := Session.get(Resource, resource_id)):
-        raise HTTPException(HTTP_404_NOT_FOUND)
-
-    resource.resource_type = resource_in.resource_type
-    resource.reference = resource_in.reference
-    resource.reference_type = ResourceReferenceType.LINK
-    resource.save()
-
-
 @router.delete(
-    '/{resource_id}'
+    '/{resource_id}',
+    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_ADMIN))]
 )
 async def delete_resource(
         resource_id: int
@@ -187,7 +155,6 @@ def save_local_resource_file(product_id: int, local_file: UploadFile) -> str:
         f.write(local_file.file.read())
 
     return file_path
-
 
 
 def delete_local_resource_file(resource_path):

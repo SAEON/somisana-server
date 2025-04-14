@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from starlette.status import HTTP_404_NOT_FOUND
 
+from somisana.api.lib.auth import Authorize
 from somisana.api.models import SimulationModel
+from somisana.const import SOMISANAScope
 from somisana.db import Session
 from somisana.db.models import Simulation
 
@@ -9,7 +11,8 @@ router = APIRouter()
 
 
 @router.get(
-    '/all'
+    '/all',
+    dependencies=[Depends(Authorize(SOMISANAScope.SIMULATION_READ))]
 )
 async def list_simulations():
     all_simulations = Session.query(Simulation).all()
@@ -19,7 +22,8 @@ async def list_simulations():
 
 @router.get(
     '/{simulation_id}',
-    response_model=SimulationModel
+    response_model=SimulationModel,
+    dependencies=[Depends(Authorize(SOMISANAScope.SIMULATION_READ))]
 )
 async def get_simulation(
         simulation_id: int,
@@ -36,7 +40,8 @@ async def get_simulation(
 
 
 @router.post(
-    '/'
+    '/',
+    dependencies=[Depends(Authorize(SOMISANAScope.SIMULATION_ADMIN))]
 )
 async def create_simulation(
         simulation_in: SimulationModel
@@ -53,7 +58,8 @@ async def create_simulation(
 
 
 @router.put(
-    '/{simulation_id}'
+    '/{simulation_id}',
+    dependencies=[Depends(Authorize(SOMISANAScope.SIMULATION_ADMIN))]
 )
 async def update_product(
         simulation_id: int,
@@ -70,7 +76,8 @@ async def update_product(
 
 
 @router.delete(
-    '/{simulation_id}'
+    '/{simulation_id}',
+    dependencies=[Depends(Authorize(SOMISANAScope.SIMULATION_ADMIN))]
 )
 async def delete_simulation(
         simulation_id: int

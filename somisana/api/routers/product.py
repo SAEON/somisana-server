@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
+from somisana.api.lib.auth import Authorize
 from somisana.api.models import ProductModel, ProductIn, SimulationModel
 from somisana.const import ResourceReferenceType
+from somisana.const import SOMISANAScope
 from somisana.db import Session
 from somisana.db.models import Product, Simulation, Resource
 from .resource import delete_local_resource_file
@@ -12,7 +14,8 @@ router = APIRouter()
 
 
 @router.get(
-    '/all_products'
+    '/all_products',
+    dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
 )
 async def list_products():
     all_products = Session.query(Product).all()
@@ -22,7 +25,8 @@ async def list_products():
 
 @router.get(
     '/{product_id}',
-    response_model=ProductModel
+    response_model=ProductModel,
+    dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
 )
 async def get_product(
         product_id: int,
@@ -56,7 +60,8 @@ def output_product_model(product: Product) -> ProductModel:
 
 
 @router.post(
-    '/'
+    '/',
+    dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_ADMIN))]
 )
 async def create_product(
         product_in: ProductIn
@@ -81,7 +86,8 @@ async def create_product(
 
 
 @router.put(
-    '/{product_id}'
+    '/{product_id}',
+    dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_ADMIN))]
 )
 async def update_product(
         product_id: int,
@@ -106,7 +112,8 @@ async def update_product(
 
 
 @router.delete(
-    '/{product_id}'
+    '/{product_id}',
+    dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_ADMIN))]
 )
 async def delete_product(
         product_id: int
