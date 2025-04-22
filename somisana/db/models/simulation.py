@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Numeric, String, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
@@ -19,3 +19,21 @@ class Simulation(Base):
 
     simulation_products = relationship('ProductSimulation', viewonly=True)
     products = association_proxy('simulation_products', 'product')
+
+    simulation_resources = relationship('SimulationResource', cascade='all, delete-orphan', passive_deletes=True)
+    resources = association_proxy('simulation_resources', 'resource',
+                                    creator=lambda s: SimulationResource(resource=s))
+
+
+class SimulationResource(Base):
+    """
+    Model of many-to-many simulation-resource relationship.
+    """
+
+    __tablename__ = 'simulation_resource'
+
+    simulation_id = Column(Integer, ForeignKey('simulation.id', ondelete='CASCADE'), primary_key=True)
+    resource_id = Column(Integer, ForeignKey('resource.id', ondelete='CASCADE'), primary_key=True)
+
+    simulation = relationship('Simulation', viewonly=True)
+    resource = relationship('Resource')

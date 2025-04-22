@@ -24,7 +24,10 @@ class Product(Base):
     product_simulations = relationship('ProductSimulation', cascade='all, delete-orphan', passive_deletes=True)
     simulations = association_proxy('product_simulations', 'simulation',
                                     creator=lambda s: ProductSimulation(simulation=s))
-    resources = relationship('Resource', cascade='all, delete-orphan', passive_deletes=True, back_populates='product')
+
+    product_resources = relationship('ProductResource', cascade='all, delete-orphan', passive_deletes=True)
+    resources = association_proxy('product_resources', 'resource',
+                                    creator=lambda s: ProductResource(resource=s))
 
 
 class ProductSimulation(Base):
@@ -39,3 +42,17 @@ class ProductSimulation(Base):
 
     product = relationship('Product', viewonly=True)
     simulation = relationship('Simulation')
+
+
+class ProductResource(Base):
+    """
+    Model of many-to-many product-resource relationship.
+    """
+
+    __tablename__ = 'product_resource'
+
+    product_id = Column(Integer, ForeignKey('product.id', ondelete='CASCADE'), primary_key=True)
+    resource_id = Column(Integer, ForeignKey('resource.id', ondelete='CASCADE'), primary_key=True)
+
+    product = relationship('Product', viewonly=True)
+    resource = relationship('Resource')

@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request, Response
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
 from somisana.api.routers import product
@@ -28,6 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/images", StaticFiles(directory=f"{Path.home()}/somisana/resources"), name="images")
 
 @app.middleware('http')
 async def db_middleware(request: Request, call_next):
