@@ -179,7 +179,7 @@ async def add_resource(
     resource.save()
 
     ProductResource(
-        product_id=resource_in.product_id,
+        product_id=product_id,
         resource_id=resource.id
     ).save()
 
