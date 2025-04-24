@@ -4,25 +4,45 @@ from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
 from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
+from somisana.api.lib import save_file_resource, delete_local_resource_file
 from somisana.api.lib.auth import Authorize
-from somisana.api.models import ProductModel, ProductIn, SimulationModel, ProductResourceModel, ResourceModel
-from somisana.const import ResourceReferenceType
+from somisana.api.models import ProductModel, ProductIn, SimulationModel, ProductResourceModel, ResourceModel, \
+    CatalogProductModel
+from somisana.const import ResourceReferenceType, ResourceType
 from somisana.const import SOMISANAScope, EntityType
 from somisana.db import Session
 from somisana.db.models import Product, Simulation, Resource, ProductResource
-from somisana.api.lib import save_file_resource, delete_local_resource_file
 
 router = APIRouter()
 
 
 @router.get(
     '/all_products',
+    response_model=list[ProductModel],
     dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
 )
 async def list_products():
     all_products = Session.query(Product).all()
 
-    return all_products
+    return [
+        output_product_model(product)
+        for product in all_products
+    ]
+
+
+@router.get(
+    '/catalog_products',
+    response_model=list[CatalogProductModel],
+    dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
+)
+async def catalog_products():
+    all_products = Session.query(Product).all()
+
+    return [
+        catalog_product_model(product)
+        for product in all_products
+    ]
+
 
 
 @router.get(
@@ -37,28 +57,6 @@ async def get_product(
         raise HTTPException(HTTP_404_NOT_FOUND)
 
     return output_product_model(product)
-
-
-def output_product_model(product: Product) -> ProductModel:
-    return ProductModel(
-        id=product.id,
-        title=product.title,
-        description=product.description,
-        doi=product.doi,
-        north_bound=product.north_bound,
-        south_bound=product.south_bound,
-        east_bound=product.east_bound,
-        west_bound=product.west_bound,
-        simulations=[
-            SimulationModel(
-                id=simulation.id,
-                title=simulation.title,
-                folder_path=simulation.folder_path,
-                data_access_url=simulation.data_access_url
-            )
-            for simulation in product.simulations
-        ]
-    )
 
 
 @router.post(
@@ -123,15 +121,7 @@ async def delete_product(
     if not (product := Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    stmt = (
-        select(Resource)
-        .where(Resource.product_id == product_id)
-        .where(Resource.reference_type == ResourceReferenceType.PATH)
-    )
-
-    resources = Session.execute(stmt).scalars().all()
-
-    for resource in resources:
+    for resource in product.resources:
         delete_local_resource_file(resource.reference)
 
     product.delete()
@@ -209,3 +199,47 @@ async def add_file_resource(
         product_id=product_id,
         resource_id=resource_id,
     ).save()
+
+    return resource_id
+
+
+def output_product_model(product: Product) -> ProductModel:
+    return ProductModel(
+        id=product.id,
+        title=product.title,
+        description=product.description,
+        doi=product.doi,
+        north_bound=product.north_bound,
+        south_bound=product.south_bound,
+        east_bound=product.east_bound,
+        west_bound=product.west_bound,
+        simulations=[
+            SimulationModel(
+                id=simulation.id,
+                title=simulation.title,
+                folder_path=simulation.folder_path,
+                data_access_url=simulation.data_access_url
+            )
+            for simulation in product.simulations
+        ]
+    )
+
+
+def catalog_product_model(product: Product) -> CatalogProductModel:
+    return CatalogProductModel(
+        id=product.id,
+        title=product.title,
+        description=product.description,
+        thumbnail=get_thumbnail_resource(product.resources)
+    )
+
+
+def get_thumbnail_resource(resources: list[Resource]) -> ResourceModel:
+    for resource in resources:
+        if resource.resource_type == ResourceType.THUMBNAIL:
+            return ResourceModel(
+                id=resource.id,
+                reference=resource.reference,
+                resource_type=ResourceType.THUMBNAIL,
+                reference_type=resource.reference_type,
+            )

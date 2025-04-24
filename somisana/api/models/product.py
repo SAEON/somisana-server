@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from .simulation import SimulationModel
+from .resource import ResourceModel
 
 
 class ProductModel(BaseModel):
@@ -15,6 +16,14 @@ class ProductModel(BaseModel):
     east_bound: float
     west_bound: float
     simulations: Optional[list[SimulationModel]]
+
+
+class CatalogProductModel(BaseModel):
+    id: Optional[int]
+    title: str
+    description: str
+    doi: Optional[str]
+    thumbnail: Optional[ResourceModel]
 
 
 class ProductIn(BaseModel):

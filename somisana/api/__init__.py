@@ -30,7 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/images", StaticFiles(directory=f"{Path.home()}/somisana/resources"), name="images")
+
+app.mount("/local_resources", StaticFiles(directory=f"{Path.home()}/somisana/resources"), name="Local Resources")
+
 
 @app.middleware('http')
 async def db_middleware(request: Request, call_next):
