@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
 from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
+from odp.api.models import resource
 from somisana.api.lib import save_file_resource, delete_local_resource_file
 from somisana.api.lib.auth import Authorize
 from somisana.api.models import ProductModel, ProductIn, SimulationModel, ProductResourceModel, ResourceModel, \
@@ -122,7 +123,8 @@ async def delete_product(
         raise HTTPException(HTTP_404_NOT_FOUND)
 
     for resource in product.resources:
-        delete_local_resource_file(resource.reference)
+        if resource.reference_type == ResourceReferenceType.PATH:
+            delete_local_resource_file(resource.reference)
 
     product.delete()
 
@@ -218,9 +220,19 @@ def output_product_model(product: Product) -> ProductModel:
                 id=simulation.id,
                 title=simulation.title,
                 folder_path=simulation.folder_path,
-                data_access_url=simulation.data_access_url
+                data_access_url=simulation.data_access_url,
+                cover_image=get_first_resource(simulation.resources, ResourceType.COVER_IMAGE)
             )
             for simulation in product.simulations
+        ],
+        resources=[
+            ResourceModel(
+                id=resource.id,
+                reference=resource.reference,
+                resource_type=resource.resource_type,
+                reference_type=resource.reference_type,
+            )
+            for resource in product.resources
         ]
     )
 
@@ -230,16 +242,16 @@ def catalog_product_model(product: Product) -> CatalogProductModel:
         id=product.id,
         title=product.title,
         description=product.description,
-        thumbnail=get_thumbnail_resource(product.resources)
+        thumbnail=get_first_resource(product.resources, ResourceType.THUMBNAIL)
     )
 
 
-def get_thumbnail_resource(resources: list[Resource]) -> ResourceModel:
+def get_first_resource(resources: list[Resource], resource_type: ResourceType) -> ResourceModel:
     for resource in resources:
-        if resource.resource_type == ResourceType.THUMBNAIL:
+        if resource.resource_type == resource_type:
             return ResourceModel(
                 id=resource.id,
                 reference=resource.reference,
-                resource_type=ResourceType.THUMBNAIL,
+                resource_type=resource_type,
                 reference_type=resource.reference_type,
             )

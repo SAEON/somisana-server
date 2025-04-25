@@ -16,6 +16,7 @@ class ProductModel(BaseModel):
     east_bound: float
     west_bound: float
     simulations: Optional[list[SimulationModel]]
+    resources: Optional[list[ResourceModel]]
 
 
 class CatalogProductModel(BaseModel):

@@ -118,3 +118,5 @@ async def add_file_resource(
         simulation_id=simulation_id,
         resource_id=resource_id,
     ).save()
+
+    return resource_id
