@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from odp.config import config
-from sadco.const import SADCOScope
+from somisana.const import SOMISANAScope
 from odp.lib.hydra import HydraAdminAPI, OAuth2TokenIntrospection
 
 hydra_admin_api = HydraAdminAPI(config.HYDRA.ADMIN.URL)
@@ -27,7 +27,7 @@ class Authorized:
     user_id: Optional[str]
 
 
-def _authorize_request(request: Request, required_scope: SADCOScope):
+def _authorize_request(request: Request, required_scope: SOMISANAScope):
     auth_header = request.headers.get('Authorization')
     scheme, access_token = get_authorization_scheme_param(auth_header)
     if not auth_header or scheme.lower() != 'bearer':
@@ -56,7 +56,7 @@ class BaseAuthorize(SecurityBase):
         self.scheme_name = 'ODP API Authorization'
         self.model = OAuth2(flows=OAuthFlows(clientCredentials=OAuthFlowClientCredentials(
             tokenUrl=f'{hydra_public_url}/oauth2/token',
-            scopes={s.value: s.value for s in SADCOScope},
+            scopes={s.value: s.value for s in SOMISANAScope},
         )))
 
     def __repr__(self):
@@ -64,7 +64,7 @@ class BaseAuthorize(SecurityBase):
 
 
 class Authorize(BaseAuthorize):
-    def __init__(self, scope: SADCOScope):
+    def __init__(self, scope: SOMISANAScope):
         super().__init__()
         self.scope = scope
 

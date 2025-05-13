@@ -15,6 +15,7 @@ def save_file_resource(file: UploadFile, resource_model: ResourceModel, entity_t
     file_path = save_local_resource_file(entity_type.value, entity_id, file)
 
     resource = Resource(
+        title=resource_model.title,
         resource_type=resource_model.resource_type,
         reference=file_path,
         reference_type=ResourceReferenceType.PATH

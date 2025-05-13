@@ -26,34 +26,11 @@ async def get_resource(
 
     return ResourceModel(
         id=resource.id,
+        title=resource.title,
         reference=resource.reference,
         resource_type=resource.resource_type,
         reference_type=resource.reference_type,
     )
-
-
-@router.get(
-    "/{product_id}/{resource_type}",
-    response_model=list[ResourceModel],
-    dependencies=[Depends(Authorize(SOMISANAScope.RESOURCE_READ))]
-)
-async def get_resources_by_resource_type(
-        product_id: int,
-        resource_type: ResourceType
-):
-    stmt = (
-        select(Resource)
-        .where(Resource.product_id == product_id)
-        .where(Resource.resource_type == resource_type)
-    )
-
-    return [
-        ResourceModel(
-            reference=resource.reference,
-            resource_type=resource.resource_type,
-            reference_type=resource.reference_type,
-        ) for resource in Session.execute(stmt).scalars().all()
-    ]
 
 
 @router.delete(

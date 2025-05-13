@@ -1,3 +1,3 @@
 from .product import ProductModel, ProductIn, CatalogProductModel
-from .simulation import SimulationModel
+from .dataset import DatasetModel, DatasetInModel
 from .resource import ResourceModel, ProductResourceModel, SimulationResourceModel

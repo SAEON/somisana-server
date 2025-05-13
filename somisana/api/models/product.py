@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from .simulation import SimulationModel
+from .dataset import DatasetModel
 from .resource import ResourceModel
 
 
@@ -15,7 +15,7 @@ class ProductModel(BaseModel):
     south_bound: float
     east_bound: float
     west_bound: float
-    simulations: Optional[list[SimulationModel]]
+    datasets: Optional[list[DatasetModel]]
     resources: Optional[list[ResourceModel]]
 
 

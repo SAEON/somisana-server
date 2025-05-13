@@ -1,18 +1,15 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
-from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
-from odp.api.models import resource
 from somisana.api.lib import save_file_resource, delete_local_resource_file
 from somisana.api.lib.auth import Authorize
-from somisana.api.models import ProductModel, ProductIn, SimulationModel, ProductResourceModel, ResourceModel, \
-    CatalogProductModel
-from somisana.const import ResourceReferenceType, ResourceType
-from somisana.const import SOMISANAScope, EntityType
+from somisana.api.models import ProductModel, ProductIn, ProductResourceModel, ResourceModel, CatalogProductModel, \
+    DatasetModel
+from somisana.const import SOMISANAScope, EntityType, ResourceReferenceType, ResourceType
 from somisana.db import Session
-from somisana.db.models import Product, Simulation, Resource, ProductResource
+from somisana.db.models import Product, Resource, ProductResource
 
 router = APIRouter()
 
@@ -45,7 +42,6 @@ async def catalog_products():
     ]
 
 
-
 @router.get(
     '/{product_id}',
     response_model=ProductModel,
@@ -75,10 +71,6 @@ async def create_product(
         south_bound=product_in.south_bound,
         east_bound=product_in.east_bound,
         west_bound=product_in.west_bound,
-        simulations=[
-            Session.get(Simulation, simulation_id)
-            for simulation_id in product_in.simulation_ids
-        ]
     )
 
     product.save()
@@ -104,10 +96,6 @@ async def update_product(
     product.south_bound = product_in.south_bound,
     product.east_bound = product_in.east_bound,
     product.west_bound = product_in.west_bound,
-    product.simulations = [
-        Session.get(Simulation, simulation_id)
-        for simulation_id in product_in.simulation_ids
-    ]
 
     product.save()
 
@@ -215,15 +203,24 @@ def output_product_model(product: Product) -> ProductModel:
         south_bound=product.south_bound,
         east_bound=product.east_bound,
         west_bound=product.west_bound,
-        simulations=[
-            SimulationModel(
-                id=simulation.id,
-                title=simulation.title,
-                folder_path=simulation.folder_path,
-                data_access_url=simulation.data_access_url,
-                cover_image=get_first_resource(simulation.resources, ResourceType.COVER_IMAGE)
+        datasets=[
+            DatasetModel(
+                id=dataset.id,
+                title=dataset.title,
+                folder_path=dataset.folder_path,
+                data_access_urls=(
+                    ResourceModel(
+                        title=resource.title,
+                        reference=resource.reference,
+                        resource_type=resource.resource_type,
+                        reference_type=resource.reference_type
+                    )
+                    for resource in dataset.resources
+                    if resource.resource_type == ResourceType.DATA_ACCESS_URL
+                ),
+                cover_image=get_first_resource(dataset.resources, ResourceType.COVER_IMAGE)
             )
-            for simulation in product.simulations
+            for dataset in product.datasets
         ],
         resources=[
             ResourceModel(
@@ -247,11 +244,17 @@ def catalog_product_model(product: Product) -> CatalogProductModel:
 
 
 def get_first_resource(resources: list[Resource], resource_type: ResourceType) -> ResourceModel:
-    for resource in resources:
-        if resource.resource_type == resource_type:
-            return ResourceModel(
+    return next(
+        (
+            ResourceModel(
                 id=resource.id,
+                title=resource.title,
                 reference=resource.reference,
                 resource_type=resource_type,
                 reference_type=resource.reference_type,
             )
+            for resource in resources
+            if resource.resource_type == resource_type
+        ),
+        None
+    )

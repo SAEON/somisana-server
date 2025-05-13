@@ -3,7 +3,7 @@ import os
 import pathlib
 from dotenv import load_dotenv
 from somisana.db import Base, engine
-from somisana.db.models import Product, ProductSimulation, Simulation
+from somisana.db.models import Product, Dataset, Resource, ProductResource, DatasetResource
 
 logger = logging.getLogger(__name__)
 

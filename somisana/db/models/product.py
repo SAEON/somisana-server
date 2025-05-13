@@ -21,27 +21,11 @@ class Product(Base):
     east_bound = Column(Numeric, nullable=False)
     west_bound = Column(Numeric, nullable=False)
 
-    product_simulations = relationship('ProductSimulation', cascade='all, delete-orphan', passive_deletes=True)
-    simulations = association_proxy('product_simulations', 'simulation',
-                                    creator=lambda s: ProductSimulation(simulation=s))
+    datasets = relationship("Dataset", back_populates="product")
 
     product_resources = relationship('ProductResource', cascade='all, delete-orphan', passive_deletes=True)
     resources = association_proxy('product_resources', 'resource',
                                     creator=lambda s: ProductResource(resource=s))
-
-
-class ProductSimulation(Base):
-    """
-    Model of many-to-many product-simulation relationship.
-    """
-
-    __tablename__ = 'product_simulation'
-
-    product_id = Column(Integer, ForeignKey('product.id', ondelete='CASCADE'), primary_key=True)
-    simulation_id = Column(Integer, ForeignKey('simulation.id', ondelete='CASCADE'), primary_key=True)
-
-    product = relationship('Product', viewonly=True)
-    simulation = relationship('Simulation')
 
 
 class ProductResource(Base):

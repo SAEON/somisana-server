@@ -3,12 +3,11 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
-from somisana.api.routers import product
 from somisana.db import Session
 from somisana.version import VERSION
 
 from somisana.api.routers import product
-from somisana.api.routers import simulation
+from somisana.api.routers import dataset
 from somisana.api.routers import resource
 
 app = FastAPI(
@@ -21,7 +20,7 @@ app = FastAPI(
 
 app.include_router(product.router, prefix='/product', tags=['Product'])
 app.include_router(resource.router, prefix='/resource', tags=['Resource'])
-app.include_router(simulation.router, prefix='/simulation', tags=['Simulation'])
+app.include_router(dataset.router, prefix='/dataset', tags=['Dataset'])
 
 app.add_middleware(
     CORSMiddleware,
