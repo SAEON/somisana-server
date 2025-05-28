@@ -15,17 +15,24 @@ class Product(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
-    doi = Column(String)
     north_bound = Column(Numeric, nullable=False)
     south_bound = Column(Numeric, nullable=False)
     east_bound = Column(Numeric, nullable=False)
     west_bound = Column(Numeric, nullable=False)
+    horizontal_extent = Column(Numeric, nullable=False)
+    horizontal_resolution = Column(Numeric, nullable=False)
+    vertical_extent = Column(Numeric, nullable=False)
+    vertical_resolution = Column(Numeric, nullable=False)
+    temporal_extent = Column(Numeric, nullable=False)
+    temporal_resolution = Column(Numeric, nullable=False)
+    variables = Column(String, nullable=False)
+    doi = Column(String)
 
     datasets = relationship("Dataset", back_populates="product")
 
     product_resources = relationship('ProductResource', cascade='all, delete-orphan', passive_deletes=True)
     resources = association_proxy('product_resources', 'resource',
-                                    creator=lambda s: ProductResource(resource=s))
+                                  creator=lambda s: ProductResource(resource=s))
 
 
 class ProductResource(Base):

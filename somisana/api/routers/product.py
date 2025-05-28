@@ -71,6 +71,13 @@ async def create_product(
         south_bound=product_in.south_bound,
         east_bound=product_in.east_bound,
         west_bound=product_in.west_bound,
+        horizontal_extent=product_in.horizontal_extent,
+        horizontal_resolution=product_in.horizontal_resolution,
+        vertical_extent=product_in.vertical_extent,
+        vertical_resolution=product_in.vertical_resolution,
+        temporal_extent=product_in.temporal_extent,
+        temporal_resolution=product_in.temporal_resolution,
+        variables=product_in.variables,
     )
 
     product.save()
@@ -203,9 +210,17 @@ def output_product_model(product: Product) -> ProductModel:
         south_bound=product.south_bound,
         east_bound=product.east_bound,
         west_bound=product.west_bound,
+        horizontal_extent=product.horizontal_extent,
+        horizontal_resolution=product.horizontal_resolution,
+        vertical_extent=product.vertical_extent,
+        vertical_resolution=product.vertical_resolution,
+        temporal_extent=product.temporal_extent,
+        temporal_resolution=product.temporal_resolution,
+        variables=product.variables,
         datasets=[
             DatasetModel(
                 id=dataset.id,
+                product_id=dataset.product_id,
                 title=dataset.title,
                 folder_path=dataset.folder_path,
                 data_access_urls=(

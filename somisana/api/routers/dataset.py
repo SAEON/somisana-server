@@ -24,6 +24,18 @@ async def list_datasets():
 
 
 @router.get(
+    '/product_datasets/{product_id}',
+    dependencies=[Depends(Authorize(SOMISANAScope.DATASET_READ))]
+)
+async def list_product_datasets(
+        product_id: int
+):
+    product_datasets = Session.query(Dataset).filter(Dataset.product_id == product_id).all()
+
+    return product_datasets
+
+
+@router.get(
     '/{dataset_id}',
     response_model=DatasetModel,
     dependencies=[Depends(Authorize(SOMISANAScope.DATASET_READ))]
