@@ -103,6 +103,13 @@ async def update_product(
     product.south_bound = product_in.south_bound,
     product.east_bound = product_in.east_bound,
     product.west_bound = product_in.west_bound,
+    product.horizontal_extent = product_in.horizontal_extent
+    product.horizontal_resolution = product_in.horizontal_resolution
+    product.vertical_extent = product_in.vertical_extent
+    product.vertical_resolution = product_in.vertical_resolution
+    product.temporal_extent = product_in.temporal_extent
+    product.temporal_resolution = product_in.temporal_resolution
+    product.variables = product_in.variables
 
     product.save()
 
