@@ -232,6 +232,7 @@ def output_product_model(product: Product) -> ProductModel:
                 folder_path=dataset.folder_path,
                 data_access_urls=(
                     ResourceModel(
+                        id=resource.id,
                         title=resource.title,
                         reference=resource.reference,
                         resource_type=resource.resource_type,
@@ -247,6 +248,7 @@ def output_product_model(product: Product) -> ProductModel:
         resources=[
             ResourceModel(
                 id=resource.id,
+                title=resource.title,
                 reference=resource.reference,
                 resource_type=resource.resource_type,
                 reference_type=resource.reference_type,
