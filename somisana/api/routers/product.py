@@ -165,6 +165,7 @@ async def add_resource(
         raise HTTPException(HTTP_404_NOT_FOUND)
 
     resource = Resource(
+        title=resource_in.title,
         resource_type=resource_in.resource_type,
         reference=resource_in.reference,
         reference_type=ResourceReferenceType.LINK
