@@ -34,6 +34,11 @@ class Product(Base):
     resources = association_proxy('product_resources', 'resource',
                                   creator=lambda s: ProductResource(resource=s))
 
+    supersedes = relationship('ProductVersion', foreign_keys='ProductVersion.product_id', back_populates='product',
+                              uselist=False)
+    superseded_by = relationship('ProductVersion', foreign_keys='ProductVersion.superseded_product_id',
+                                 back_populates='superseded_product', uselist=False)
+
 
 class ProductResource(Base):
     """
@@ -47,3 +52,17 @@ class ProductResource(Base):
 
     product = relationship('Product', viewonly=True)
     resource = relationship('Resource')
+
+
+class ProductVersion(Base):
+    """
+    Relationship between a product it the product it superseeds
+    """
+
+    __tablename__ = 'product_version'
+
+    product_id = Column(Integer, ForeignKey('product.id'), primary_key=True)
+    superseded_product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+
+    product = relationship('Product', foreign_keys=[product_id], back_populates='supersedes')
+    superseded_product = relationship('Product', foreign_keys=[superseded_product_id], back_populates='superseded_by')

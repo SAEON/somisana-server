@@ -24,6 +24,7 @@ class ProductModel(BaseModel):
     variables: Optional[str]
     datasets: Optional[list[DatasetModel]]
     resources: Optional[list[ResourceModel]]
+    superseded_product_id: Optional[int]
 
 
 class CatalogProductModel(BaseModel):
@@ -49,3 +50,4 @@ class ProductIn(BaseModel):
     temporal_resolution: Optional[float]
     variables: Optional[str]
     doi: Optional[str]
+    superseded_product_id: Optional[int]

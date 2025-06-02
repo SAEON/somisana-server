@@ -9,7 +9,7 @@ from somisana.api.models import ProductModel, ProductIn, ProductResourceModel, R
     DatasetModel
 from somisana.const import SOMISANAScope, EntityType, ResourceReferenceType, ResourceType
 from somisana.db import Session
-from somisana.db.models import Product, Resource, ProductResource
+from somisana.db.models import Product, Resource, ProductResource, ProductVersion
 
 router = APIRouter()
 
@@ -82,6 +82,12 @@ async def create_product(
 
     product.save()
 
+    if product_in.superseded_product_id:
+        ProductVersion(
+            product_id=product.id,
+            superseded_product_id=product_in.superseded_product_id,
+        ).save()
+
     return product.id
 
 
@@ -112,6 +118,18 @@ async def update_product(
     product.variables = product_in.variables
 
     product.save()
+
+    if product_version := Session.get(ProductVersion, product_id):
+        if product_in.superseded_product_id:
+            product_version.superseded_product_id = product_in.superseded_product_id
+            product_version.save()
+        else:
+            product_version.delete()
+    elif product_in.superseded_product_id:
+        ProductVersion(
+            product_id=product.id,
+            superseded_product_id=product_in.superseded_product_id,
+        ).save()
 
 
 @router.delete(
@@ -225,6 +243,7 @@ def output_product_model(product: Product) -> ProductModel:
         temporal_extent=product.temporal_extent,
         temporal_resolution=product.temporal_resolution,
         variables=product.variables,
+        superseded_product_id=product.supersedes.superseded_product_id if product.supersedes else None,
         datasets=[
             DatasetModel(
                 id=dataset.id,
