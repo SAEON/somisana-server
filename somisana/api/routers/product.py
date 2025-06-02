@@ -34,7 +34,12 @@ async def list_products():
     dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
 )
 async def catalog_products():
-    all_products = Session.query(Product).all()
+    # we filter out the products that have been superseded
+    all_products = (
+        Session.query(Product)
+        .filter(Product.superseded_by == None)
+        .all()
+    )
 
     return [
         catalog_product_model(product)
@@ -244,6 +249,7 @@ def output_product_model(product: Product) -> ProductModel:
         temporal_resolution=product.temporal_resolution,
         variables=product.variables,
         superseded_product_id=product.supersedes.superseded_product_id if product.supersedes else None,
+        superseded_by_product_id=product.superseded_by.product_id if product.superseded_by else None,
         datasets=[
             DatasetModel(
                 id=dataset.id,

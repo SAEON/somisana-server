@@ -25,6 +25,7 @@ class ProductModel(BaseModel):
     datasets: Optional[list[DatasetModel]]
     resources: Optional[list[ResourceModel]]
     superseded_product_id: Optional[int]
+    superseded_by_product_id: Optional[int]
 
 
 class CatalogProductModel(BaseModel):
