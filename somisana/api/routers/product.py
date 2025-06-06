@@ -1,11 +1,12 @@
 from typing import Annotated
+from sqlalchemy import or_
 
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
 from starlette.status import HTTP_404_NOT_FOUND
 
 from somisana.api.lib import save_file_resource, delete_local_resource_file
 from somisana.api.lib.auth import Authorize
-from somisana.api.models import ProductModel, ProductIn, ProductResourceModel, ResourceModel, CatalogProductModel, \
+from somisana.api.models import ProductOut, ProductModel, ProductResourceModel, ResourceModel, CatalogProductModel, \
     DatasetModel
 from somisana.const import SOMISANAScope, EntityType, ResourceReferenceType, ResourceType
 from somisana.db import Session
@@ -16,7 +17,7 @@ router = APIRouter()
 
 @router.get(
     '/all_products',
-    response_model=list[ProductModel],
+    response_model=list[ProductOut],
     dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
 )
 async def list_products():
@@ -49,12 +50,12 @@ async def catalog_products():
 
 @router.get(
     '/{product_id}',
-    response_model=ProductModel,
+    response_model=ProductOut,
     dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_READ))]
 )
 async def get_product(
         product_id: int,
-) -> ProductModel:
+) -> ProductOut:
     if not (product := Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
@@ -66,7 +67,7 @@ async def get_product(
     dependencies=[Depends(Authorize(SOMISANAScope.PRODUCT_ADMIN))]
 )
 async def create_product(
-        product_in: ProductIn
+        product_in: ProductModel
 ) -> int:
     product = Product(
         title=product_in.title,
@@ -76,7 +77,6 @@ async def create_product(
         south_bound=product_in.south_bound,
         east_bound=product_in.east_bound,
         west_bound=product_in.west_bound,
-        horizontal_extent=product_in.horizontal_extent,
         horizontal_resolution=product_in.horizontal_resolution,
         vertical_extent=product_in.vertical_extent,
         vertical_resolution=product_in.vertical_resolution,
@@ -102,7 +102,7 @@ async def create_product(
 )
 async def update_product(
         product_id: int,
-        product_in: ProductIn
+        product_in: ProductModel
 ):
     if not (product := Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
@@ -114,7 +114,6 @@ async def update_product(
     product.south_bound = product_in.south_bound,
     product.east_bound = product_in.east_bound,
     product.west_bound = product_in.west_bound,
-    product.horizontal_extent = product_in.horizontal_extent
     product.horizontal_resolution = product_in.horizontal_resolution
     product.vertical_extent = product_in.vertical_extent
     product.vertical_resolution = product_in.vertical_resolution
@@ -150,6 +149,16 @@ async def delete_product(
     for resource in product.resources:
         if resource.reference_type == ResourceReferenceType.PATH:
             delete_local_resource_file(resource.reference)
+
+    for dataset in product.datasets:
+        dataset.delete()
+
+    Session.query(ProductVersion).filter(
+        or_(
+            ProductVersion.product_id == product_id,
+            ProductVersion.superseded_product_id == product_id
+        )
+    ).delete()
 
     product.delete()
 
@@ -231,8 +240,8 @@ async def add_file_resource(
     return resource_id
 
 
-def output_product_model(product: Product) -> ProductModel:
-    return ProductModel(
+def output_product_model(product: Product) -> ProductOut:
+    return ProductOut(
         id=product.id,
         title=product.title,
         description=product.description,
@@ -241,7 +250,6 @@ def output_product_model(product: Product) -> ProductModel:
         south_bound=product.south_bound,
         east_bound=product.east_bound,
         west_bound=product.west_bound,
-        horizontal_extent=product.horizontal_extent,
         horizontal_resolution=product.horizontal_resolution,
         vertical_extent=product.vertical_extent,
         vertical_resolution=product.vertical_resolution,
