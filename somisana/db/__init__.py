@@ -30,6 +30,9 @@ class _Base:
         Session.delete(self)
         Session.flush()
 
+    def to_dict(self):
+        return {key: value for key, value in vars(self).items() if not key.startswith('_sa_')}
+
     def __repr__(self):
         try:
             params = ', '.join(f'{attr}={getattr(self, attr)!r}' for attr in getattr(self, '_repr_'))
