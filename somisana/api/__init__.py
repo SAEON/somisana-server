@@ -1,14 +1,13 @@
 from fastapi import FastAPI, Request, Response
-from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
+from somisana.api.lib import local_resource_folder_path
+from somisana.api.routers import dataset
+from somisana.api.routers import product
+from somisana.api.routers import resource
 from somisana.db import Session
 from somisana.version import VERSION
-
-from somisana.api.routers import product
-from somisana.api.routers import dataset
-from somisana.api.routers import resource
 
 app = FastAPI(
     title="SOMISANA API",
@@ -29,8 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-app.mount("/local_resources", StaticFiles(directory=f"{Path.home()}/somisana/resources"), name="Local Resources")
+app.mount("/local_resources", StaticFiles(directory=local_resource_folder_path), name="Local Resources")
 
 
 @app.middleware('http')

@@ -10,6 +10,8 @@ from somisana.const import EntityType
 from somisana.const import ResourceReferenceType
 from somisana.db.models import Resource
 
+local_resource_folder_path = f'{Path(__file__).resolve().parent.parent.parent}/resources'
+
 
 def save_file_resource(file: UploadFile, resource_model: ResourceModel, entity_type: EntityType, entity_id: int) -> int:
     file_path = save_local_resource_file(entity_type.value, entity_id, file)
@@ -28,7 +30,7 @@ def save_file_resource(file: UploadFile, resource_model: ResourceModel, entity_t
 
 def save_local_resource_file(entity_type: EntityType, entity_id: int, local_file: UploadFile) -> str:
     local_resource_leaf_dir = f'{entity_type}/{entity_id}'
-    local_resource_full_dir = f"{Path.home()}/somisana/resources/{local_resource_leaf_dir}"
+    local_resource_full_dir = f"{local_resource_folder_path}/{local_resource_leaf_dir}"
 
     if not os.path.exists(local_resource_full_dir):
         os.makedirs(local_resource_full_dir)
@@ -42,6 +44,6 @@ def save_local_resource_file(entity_type: EntityType, entity_id: int, local_file
 
 
 def delete_local_resource_file(resource_path):
-    resource_full_path = f'{Path.home()}/somisana/resources/{resource_path}'
+    resource_full_path = f'{local_resource_folder_path}/{resource_path}'
     if os.path.exists(resource_full_path):
         os.remove(resource_full_path)

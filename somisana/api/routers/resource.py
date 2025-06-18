@@ -43,7 +43,7 @@ async def delete_resource(
     if not (resource := Session.get(Resource, resource_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    if resource.reference == ResourceReferenceType.PATH:
+    if resource.reference_type == ResourceReferenceType.PATH:
         delete_local_resource_file(resource.reference)
 
     resource.delete()
