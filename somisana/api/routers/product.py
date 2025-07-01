@@ -224,7 +224,7 @@ async def add_file_resource(
         resource_query: Annotated[ResourceModel, Query()],
         file: Annotated[UploadFile, File()]
 ):
-    logger.debug('ENTERED ADD FILE RESOURCE ROUTE')
+    logger.info('ENTERED ADD FILE RESOURCE ROUTE')
 
     if not (Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
