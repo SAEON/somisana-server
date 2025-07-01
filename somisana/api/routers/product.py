@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 from sqlalchemy import or_
 
@@ -13,6 +14,7 @@ from somisana.db import Session
 from somisana.db.models import Product, Resource, ProductResource, ProductVersion
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get(
@@ -222,6 +224,8 @@ async def add_file_resource(
         resource_query: Annotated[ResourceModel, Query()],
         file: Annotated[UploadFile, File()]
 ):
+    logger.debug('ENTERED ADD FILE RESOURCE ROUTE')
+
     if not (Session.get(Product, product_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
