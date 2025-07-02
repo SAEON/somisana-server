@@ -1,13 +1,17 @@
-from decimal import Decimal
+import filecmp
+import shutil
+from pathlib import Path
 
 import pytest
 
-from somisana.const import SOMISANAScope, ResourceType
-from somisana.db.models import Product
+from somisana.const import SOMISANAScope, ResourceType, ResourceReferenceType, EntityType
+from somisana.db.models import Product, Resource
 from test import TestSession
 from test.api import assert_forbidden
 from test.factories import ProductFactory, DatasetFactory, ResourceFactory, ProductVersionFactory, \
     DatasetResourceFactory, ProductResourceFactory
+
+from somisana.api.lib import local_resource_folder_path
 
 
 @pytest.mark.require_scope(SOMISANAScope.PRODUCT_READ)
@@ -165,8 +169,8 @@ def test_get_resources(api, scopes):
 
     product = ProductFactory.create()
 
-    ProductVersionFactory.create(product=product, resource=resource1)
-    ProductVersionFactory.create(product=product, resource=resource2)
+    ProductResourceFactory.create(product=product, resource=resource1)
+    ProductResourceFactory.create(product=product, resource=resource2)
 
     r = api(scopes).get(f'/product/{product.id}/resources')
 
@@ -174,10 +178,69 @@ def test_get_resources(api, scopes):
         assert_forbidden(r)
     else:
         for resource in r.json():
-            if resource['id'] == resource1.id:
+            if int(resource['id']) == resource1.id:
                 compare_resources(resource1, resource)
             else:
                 compare_resources(resource2, resource)
+
+
+@pytest.mark.require_scope(SOMISANAScope.RESOURCE_ADMIN)
+def test_add_resource(api, scopes):
+    authorized = SOMISANAScope.RESOURCE_ADMIN in scopes
+
+    product = ProductFactory.create()
+
+    # Set the reference typ because only links are added via this route
+    resource = ResourceFactory.build(reference_type=ResourceReferenceType.LINK)
+
+    r = api(scopes).post(f'/product/{product.id}/resource/', json=dict(
+        title=resource.title,
+        resource_type=resource.resource_type,
+        reference=resource.reference
+    ))
+
+    if not authorized:
+        assert_forbidden(r)
+    else:
+        new_resource_id = r.json()
+
+        # Set the factory resource id so they can be compared
+        resource.id = new_resource_id
+
+        fetched_resource = TestSession.get(Resource, new_resource_id)
+
+        compare_resources(fetched_resource, resource.to_dict())
+
+
+@pytest.mark.require_scope(SOMISANAScope.RESOURCE_ADMIN)
+def test_add_file_resource(api, scopes):
+    authorized = SOMISANAScope.RESOURCE_ADMIN in scopes
+
+    product = ProductFactory.create(id=0)
+
+    file_name = 'mock_resource_file.png'
+    mock_file_path = f'{Path(__file__).parent}/test_data/{file_name}'
+
+    title = "Product Thumbnail"
+    resource_type = ResourceType.THUMBNAIL.value
+
+    with open(mock_file_path, "rb") as f:
+        file_to_upload = {'file': (file_name, f.read(), 'application/octet-stream')}
+
+        r = api(scopes).put(
+            f'/product/{product.id}/resource/?resource_type={resource_type}&title={title}',
+            files=file_to_upload
+        )
+
+    if not authorized:
+        assert_forbidden(r)
+    else:
+
+        stored_resource_path = f'{local_resource_folder_path}/product/{product.id}'
+
+        assert filecmp.cmp(mock_file_path, f'{stored_resource_path}/{file_name}', shallow=False)
+
+        shutil.rmtree(stored_resource_path)
 
 
 def compare_products(product, product_json):
