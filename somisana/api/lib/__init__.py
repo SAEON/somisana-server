@@ -1,4 +1,3 @@
-import logging
 import os
 from pathlib import Path
 
@@ -12,12 +11,6 @@ from somisana.const import ResourceReferenceType
 from somisana.db.models import Resource
 
 local_resource_folder_path = f'{Path(__file__).resolve().parent.parent.parent}/resources'
-
-logging.basicConfig(
-    level=logging.INFO
-)
-
-logger = logging.getLogger(__name__)
 
 
 def save_file_resource(file: UploadFile, resource_model: ResourceModel, entity_type: EntityType, entity_id: int) -> int:
@@ -44,12 +37,8 @@ def save_local_resource_file(entity_type: EntityType, entity_id: int, local_file
 
     file_path = f"{local_resource_full_dir}/{local_file.filename}"
 
-    logger.info(f"SAVING FILE: {file_path}")
-
     with open(file_path, "wb") as f:
         f.write(local_file.file.read())
-
-    logger.info(f"SUCCESSFULLY SAVED FILE: {file_path}")
 
     return f'{local_resource_leaf_dir}/{local_file.filename}'
 
