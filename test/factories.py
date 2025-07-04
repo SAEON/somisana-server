@@ -58,9 +58,11 @@ class DatasetFactory(SOMISANAModelFactory):
         model = Dataset
 
     id = factory.Sequence(lambda n: n)
-    product = factory.SubFactory(ProductFactory)
+    product_id = factory.SelfAttribute('product.id')
     title = factory.Faker('sentence', nb_words=3)
     folder_path = factory.Faker('file_path', depth=2, extension='nc')
+
+    product = factory.SubFactory(ProductFactory)
 
 
 class ResourceFactory(SOMISANAModelFactory):

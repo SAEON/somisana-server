@@ -4,14 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from somisana.const import SOMISANAScope, ResourceType, ResourceReferenceType, EntityType
+from somisana.api.lib import local_resource_folder_path
+from somisana.const import SOMISANAScope, ResourceType, ResourceReferenceType
 from somisana.db.models import Product, Resource
 from test import TestSession
 from test.api import assert_forbidden
+from test.api.lib import compare_datasets, compare_resources, compare_products
 from test.factories import ProductFactory, DatasetFactory, ResourceFactory, ProductVersionFactory, \
     DatasetResourceFactory, ProductResourceFactory
-
-from somisana.api.lib import local_resource_folder_path
 
 
 @pytest.mark.require_scope(SOMISANAScope.PRODUCT_READ)
@@ -100,12 +100,12 @@ def test_add_product(api, scopes):
     else:
         new_product_id = r.json()
 
-        fetched_product: Product = TestSession.get(Product, new_product_id)
+        created_product: Product = TestSession.get(Product, new_product_id)
 
-        # Set the built factories' id to the fetched products' id to compare them
-        product.id = fetched_product.id
+        # Set the built factories' id to the created products' id to compare them
+        product.id = created_product.id
 
-        assert (fetched_product.to_dict() == product.to_dict())
+        assert (created_product.to_dict() == product.to_dict())
 
 
 @pytest.mark.require_scope(SOMISANAScope.PRODUCT_ADMIN)
@@ -138,12 +138,12 @@ def test_update_product(api, scopes):
     if not authorized:
         assert_forbidden(r)
     else:
-        fetched_product = TestSession.get(Product, product.id)
+        created_product = TestSession.get(Product, product.id)
 
-        # Set the built factories' id to the fetched products' id to compare them
-        updated_product.id = fetched_product.id
+        # Set the built factories' id to the created products' id to compare them
+        updated_product.id = created_product.id
 
-        assert (fetched_product.to_dict() == updated_product.to_dict())
+        assert (created_product.to_dict() == updated_product.to_dict())
 
 
 @pytest.mark.require_scope(SOMISANAScope.PRODUCT_ADMIN)
@@ -207,9 +207,9 @@ def test_add_resource(api, scopes):
         # Set the factory resource id so they can be compared
         resource.id = new_resource_id
 
-        fetched_resource = TestSession.get(Resource, new_resource_id)
+        created_resource = TestSession.get(Resource, new_resource_id)
 
-        compare_resources(fetched_resource, resource.to_dict())
+        compare_resources(created_resource, resource.to_dict())
 
 
 @pytest.mark.require_scope(SOMISANAScope.RESOURCE_ADMIN)
@@ -242,66 +242,3 @@ def test_add_file_resource(api, scopes):
 
         shutil.rmtree(stored_resource_path)
 
-
-def compare_products(product, product_json):
-    assert (
-               product.id,
-               product.title,
-               product.description,
-               product.doi,
-               float(product.north_bound),
-               float(product.south_bound),
-               float(product.east_bound),
-               float(product.west_bound),
-               product.horizontal_resolution,
-               product.vertical_extent,
-               product.vertical_resolution,
-               product.temporal_extent,
-               product.temporal_resolution,
-               product.variables,
-           ) == (
-               product_json['id'],
-               product_json['title'],
-               product_json['description'],
-               product_json['doi'],
-               product_json['north_bound'],
-               product_json['south_bound'],
-               product_json['east_bound'],
-               product_json['west_bound'],
-               product_json['horizontal_resolution'],
-               product_json['vertical_extent'],
-               product_json['vertical_resolution'],
-               product_json['temporal_extent'],
-               product_json['temporal_resolution'],
-               product_json['variables']
-           )
-
-
-def compare_datasets(dataset, dataset_json):
-    assert (
-               int(dataset.id),
-               dataset.product_id,
-               dataset.title,
-               dataset.folder_path
-           ) == (
-               int(dataset_json['id']),
-               dataset_json['product_id'],
-               dataset_json['title'],
-               dataset_json['folder_path']
-           )
-
-
-def compare_resources(resource, resource_json):
-    assert (
-               int(resource.id),
-               resource.title,
-               resource.reference,
-               resource.resource_type,
-               resource.reference_type
-           ) == (
-               int(resource_json['id']),
-               resource_json['title'],
-               resource_json['reference'],
-               resource_json['resource_type'],
-               resource_json['reference_type']
-           )
