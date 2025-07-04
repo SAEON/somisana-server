@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy import select
 from starlette.status import HTTP_404_NOT_FOUND
 
 from somisana.api.lib import delete_local_resource_file
 from somisana.api.lib.auth import Authorize
 from somisana.api.models import ResourceModel
-from somisana.const import ResourceType, ResourceReferenceType
+from somisana.const import ResourceReferenceType
 from somisana.const import SOMISANAScope
 from somisana.db import Session
 from somisana.db.models import Resource
