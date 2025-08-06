@@ -51,6 +51,8 @@ async def get_dataset(
         product_id=dataset.product_id,
         title=dataset.title,
         folder_path=dataset.folder_path,
+        type=dataset.type,
+        identifier=dataset.identifier,
         data_access_urls=[
             ResourceModel(
                 id=resource.id,
@@ -89,7 +91,9 @@ async def create_dataset(
     dataset = Dataset(
         product_id=dataset_in.product_id,
         title=dataset_in.title,
-        folder_path=dataset_in.folder_path
+        folder_path=dataset_in.folder_path,
+        type=dataset_in.type,
+        identifier=dataset_in.identifier,
     )
 
     dataset.save()
@@ -108,9 +112,11 @@ async def update_dataset(
     if not (dataset := Session.get(Dataset, dataset_id)):
         raise HTTPException(HTTP_404_NOT_FOUND)
 
-    dataset.product_id = dataset_in.product_id,
-    dataset.title = dataset_in.title,
-    dataset.folder_path = dataset_in.folder_path,
+    dataset.product_id = dataset_in.product_id
+    dataset.title = dataset_in.title
+    dataset.folder_path = dataset_in.folder_path
+    dataset.type = dataset_in.type,
+    dataset.identifier = dataset_in.identifier,
 
     dataset.save()
 

@@ -60,6 +60,8 @@ class DatasetFactory(SOMISANAModelFactory):
     id = factory.Sequence(lambda n: n)
     product_id = factory.SelfAttribute('product.id')
     title = factory.Faker('sentence', nb_words=3)
+    identifier = factory.Faker('word')
+    type = factory.Faker('word')
     folder_path = factory.Faker('file_path', depth=2, extension='nc')
 
     product = factory.SubFactory(ProductFactory)

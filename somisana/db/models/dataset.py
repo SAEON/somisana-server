@@ -15,6 +15,8 @@ class Dataset(Base):
     id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
     title = Column(String, nullable=False)
+    identifier = Column(String, nullable=False)
+    type = Column(String, nullable=False)
     folder_path = Column(String, nullable=False)
 
     product = relationship('Product', back_populates='datasets')
