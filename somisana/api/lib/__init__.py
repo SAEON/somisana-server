@@ -6,11 +6,25 @@ from fastapi import UploadFile
 from somisana.api.lib.auth import Authorize
 from somisana.api.lib.auth import Authorize
 from somisana.api.models import ResourceModel
-from somisana.const import EntityType
-from somisana.const import ResourceReferenceType
+from somisana.const import EntityType, ResourceReferenceType
 from somisana.db.models import Resource
 
 local_resource_folder_path = f'{Path(__file__).resolve().parent.parent.parent}/resources'
+
+
+def update_file_resource(file: UploadFile, resource: Resource, entity_type: EntityType, entity_id: int) -> bool:
+    new_file_path = save_local_resource_file(entity_type, entity_id, file)
+    old_file_path = resource.reference
+    was_file = (resource.reference_type == ResourceReferenceType.PATH)
+
+    resource.reference = new_file_path
+    resource.reference_type = ResourceReferenceType.PATH
+    resource.save()
+
+    if was_file:
+        delete_local_resource_file(old_file_path)
+
+    return True
 
 
 def save_file_resource(file: UploadFile, resource_model: ResourceModel, entity_type: EntityType, entity_id: int) -> int:
