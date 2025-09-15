@@ -23,5 +23,5 @@ class DatasetModel(BaseModel):
     identifier: str
     type: DatasetType
     data_access_urls: Optional[List[ResourceModel]]
-    cover_image: Optional[ResourceModel]
+    cover_images: Optional[List[ResourceModel]]
 

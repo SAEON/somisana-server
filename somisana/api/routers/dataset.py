@@ -64,20 +64,17 @@ async def get_dataset(
             for resource in dataset.resources
             if resource.resource_type == ResourceType.DATA_ACCESS_URL
         ],
-        cover_image=next(
-            (
-                ResourceModel(
-                    id=resource.id,
-                    title=resource.title,
-                    reference=resource.reference,
-                    resource_type=resource.resource_type,
-                    reference_type=resource.reference_type
-                )
-                for resource in dataset.resources
-                if resource.resource_type == ResourceType.COVER_IMAGE
-            ),
-            None
-        ),
+        cover_images=[
+            ResourceModel(
+                id=resource.id,
+                title=resource.title,
+                reference=resource.reference,
+                resource_type=resource.resource_type,
+                reference_type=resource.reference_type
+            )
+            for resource in dataset.resources
+            if resource.resource_type in [ResourceType.COVER_IMAGE, ResourceType.COVER_CLIP]
+        ],
     )
 
 

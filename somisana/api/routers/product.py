@@ -280,7 +280,17 @@ def output_product_model(product: Product) -> ProductOut:
                     for resource in dataset.resources
                     if resource.resource_type == ResourceType.DATA_ACCESS_URL
                 ),
-                cover_image=get_first_resource(dataset.resources, ResourceType.COVER_IMAGE)
+                cover_images=(
+                    ResourceModel(
+                        id=resource.id,
+                        title=resource.title,
+                        reference=resource.reference,
+                        resource_type=resource.resource_type,
+                        reference_type=resource.reference_type,
+                    )
+                    for resource in dataset.resources
+                    if resource.resource_type in [ResourceType.COVER_IMAGE, ResourceType.COVER_CLIP]
+                )
             )
             for dataset in product.datasets
         ],
