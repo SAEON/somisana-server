@@ -269,6 +269,7 @@ def output_product_model(product: Product) -> ProductOut:
                 folder_path=dataset.folder_path,
                 type=dataset.type,
                 identifier=dataset.identifier,
+                visualize=dataset.visualize,
                 data_access_urls=(
                     ResourceModel(
                         id=resource.id,

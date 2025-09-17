@@ -12,14 +12,16 @@ class DatasetInModel(BaseModel):
     identifier: str
     type: DatasetType
     title: str
-    folder_path: str
+    folder_path: Optional[str]
+    visualize: bool
 
 
 class DatasetModel(BaseModel):
     id: Optional[int]
     product_id: int
     title: str
-    folder_path: str
+    folder_path: Optional[str]
+    visualize: bool
     identifier: str
     type: DatasetType
     data_access_urls: Optional[List[ResourceModel]]

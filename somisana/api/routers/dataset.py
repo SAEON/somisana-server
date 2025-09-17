@@ -53,6 +53,7 @@ async def get_dataset(
         folder_path=dataset.folder_path,
         type=dataset.type,
         identifier=dataset.identifier,
+        visualize=dataset.visualize,
         data_access_urls=[
             ResourceModel(
                 id=resource.id,
@@ -89,6 +90,7 @@ async def create_dataset(
         product_id=dataset_in.product_id,
         title=dataset_in.title,
         folder_path=dataset_in.folder_path,
+        visualize=dataset_in.visualize,
         type=dataset_in.type,
         identifier=dataset_in.identifier,
     )
@@ -112,8 +114,9 @@ async def update_dataset(
     dataset.product_id = dataset_in.product_id
     dataset.title = dataset_in.title
     dataset.folder_path = dataset_in.folder_path
-    dataset.type = dataset_in.type,
-    dataset.identifier = dataset_in.identifier,
+    dataset.type = dataset_in.type
+    dataset.identifier = dataset_in.identifier
+    dataset.visualize = dataset_in.visualize
 
     dataset.save()
 

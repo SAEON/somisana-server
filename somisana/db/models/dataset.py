@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey
+from sqlalchemy import Column, String, Integer, ForeignKey, Boolean
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
@@ -17,7 +17,8 @@ class Dataset(Base):
     title = Column(String, nullable=False)
     identifier = Column(String, nullable=False)
     type = Column(String, nullable=False)
-    folder_path = Column(String, nullable=False)
+    visualize = Column(Boolean, nullable=False, default=False)
+    folder_path = Column(String, nullable=True)
 
     product = relationship('Product', back_populates='datasets')
 
